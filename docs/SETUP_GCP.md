@@ -36,9 +36,16 @@ You will create a Google Cloud project, enable the Search Console API, configure
    - Up to 100 test users allowed
    - You can add more later
 9. → **Save and continue** → **Back to dashboard**
-10. Leave the **Publishing status** on **Testing**. This is fine for personal/team use.
+10. **Publishing status** → click **PUBLISH APP** to switch from *Testing* to *In production*. **Do not** leave it on *Testing*.
 
-> **About publishing**: as long as the app is "in Testing", only users in the *Test users* list can authenticate. To remove that limit, you'd need to submit the app for Google verification (slow process for "sensitive" scopes like `webmasters.readonly`). For 95% of personal/team use cases, *Testing* mode is the right choice.
+> **Why you must publish (even for personal use)** — Google enforces **two** restrictions on *Testing*-mode apps :
+>
+> 1. Only users in your *Test users* list can authenticate.
+> 2. **Refresh tokens expire after 7 days.**
+>
+> The second point is the killer for this connector : every tool call refreshes a Google access token from the stored refresh token. A *Testing*-mode app will silently work for the first week, then start returning `invalid_grant` on every call until you re-do the OAuth flow. Publishing the app makes refresh tokens durable (they last until you revoke them, the user changes their password, or 6 months without use).
+>
+> **You don't need Google verification.** Publishing an app and getting it verified are two different things. After clicking *PUBLISH APP*, your app sits in *In production / Unverified* — the consent screen shows an "unverified app" warning, you click *Advanced → Go to … (unsafe)*, and it works exactly like a verified app. Verification is only required if you onboard hundreds of users or list the app publicly. For personal or small-team use with the `webmasters.readonly` scope, *unverified production* is the correct setting.
 
 ## 4. Create the OAuth Client ID
 
@@ -99,4 +106,6 @@ Save this value — you'll paste it in the connector's login UI later (and into 
 | `Search Console API has not been enabled` | API not enabled in this project | Step 2 |
 | `redirect_uri must use HTTPS` | You used `http://localhost` | OAuth Web clients require HTTPS in redirect URIs (use the deployed Worker URL, not localhost) |
 | `invalid_grant: account not found` | The OAuth client was deleted in GCP | Re-create in step 4, push new secrets |
+| `invalid_grant` after ~7 days of working fine | OAuth app left in *Testing* mode → Google silently expired the refresh token | Step 3.10 → switch *Publishing status* to *In production*, then disconnect and reconnect the connector to issue a fresh (durable) refresh token |
 | `No Google refresh token in grant. Re-authorize` | Old grant from a previous flow version | Delete the connector in ChatGPT/Claude and recreate it |
+| `Invalid access key. Try again.` despite the value matching what you set | On Windows, `wrangler secret put` was fed via a PowerShell pipe that appended `\r\n` or a UTF-8 BOM to the stored secret | Re-set the secret using the interactive prompt or the Cloudflare dashboard (see README section 4, "Windows secret pitfall") |
