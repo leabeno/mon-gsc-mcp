@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "gsc-mcp-connector",
+  "name": "mon-gsc-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2025-01-15",
   "compatibility_flags": ["nodejs_compat"],
@@ -21,10 +21,11 @@
       "new_sqlite_classes": ["GSCMCP"]
     }
   ],
-  "kv_namespaces": [
-    {
-      "binding": "OAUTH_KV",
-      "id": "0e7d767089d84696964455e41fd09022"
-    }
-  ]
+  
+"kv_namespaces": [
+  {
+    "binding": "OAUTH_KV"
+  }
+]
+
 }
